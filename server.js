@@ -7,6 +7,15 @@ const port = process.env.PORT || 3000;
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
+//CORS
+const cors = require("cors");
+
+const corsOptions = {
+  origin: "http://localhost:8081"
+};
+
+app.use(cors(corsOptions));
+
 app.get('/', (req, res) => {
   res.json({message: 'alive'});
 });
@@ -101,6 +110,55 @@ app.delete('/advancedExplorers/:id', async (req, res) => {
 	return res.json({message: "Eliminado correctamente"});
 });
 
+// =======================================================
+// MissionCommanders
+// =======================================================
+app.get('/missionCommanders', async (req, res) => {
+  const missionCommanders =  await prisma.missionCommander.findMany({});
+  res.json(missionCommanders);
+});
+
+app.get('/missionCommanders/:id', async (req, res) => {
+  const id = req.params.id;
+  const missionCommander = await prisma.missionCommander.findUnique({where: {id: parseInt(id)}});
+  res.json(missionCommander);
+});
+
+app.post('/missionCommanders', async (req, res) => {
+  const missionCommander = {
+    name: req.body.name,
+    username: req.body.username,
+    mainStack: req.body.mainStack,
+    currentEnrollment: req.body.currentEnrollment,
+    hasAzureCertification: req.body.hasAzureCertification
+   };
+  const message = 'missionCommander creado.';
+  await prisma.missionCommander.create({data: missionCommander});
+  return res.json({message});
+});
+
+app.put('/missionCommanders/:id', async (req, res) => {
+	const id = parseInt(req.params.id);
+
+	await prisma.missionCommander.update({
+		where: {
+			id: id
+		},
+		data: {
+			mainStack: req.body.mainStack,
+      currentEnrollment: req.body.currentEnrollment,
+      hasAzureCertification: req.body.hasAzureCertification
+		}
+	})
+
+	return res.json({message: "Actualizado correctamente"});
+});
+
+app.delete('/missionCommanders/:id', async (req, res) => {
+	const id = parseInt(req.params.id);
+	await prisma.missionCommander.delete({where: {id: id}});
+	return res.json({message: "Eliminado correctamente"});
+});
 
 app.listen(port, () => {
   console.log(`Listening to requests on port ${port}`);
